@@ -16,7 +16,7 @@ dotenv.config();
 const cors = require("cors");
 app.use(
   cors({
-    origin: `http://localhost:${process.env.REACT_PORT || 9001}`,
+    origin: "*", //`http://localhost:${process.env.REACT_PORT || 9001}`,
     optionsSuccessStatus: 200,
   })
 );
@@ -127,7 +127,7 @@ const server = app.listen(port, () =>
 // SET UP WEBSOCKET at given endpoint
 //
 
-let gameState = require("./gameState");
+let canvasState = require("./CanvasState");
 
 // Set up a headless websocket server that prints any
 // events that come in.
@@ -139,22 +139,21 @@ var wss = new WebSocketServer({
   path: process.env.WEBSOCKET_ENDPOINT || "/websockettest",
 });
 
-// create a unique id per connection.
-wss.getUniqueID = () => {
-  const s4 = () => {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1);
-  };
-  return s4() + s4() + "-" + s4();
-};
+// // create a unique id per connection.
+// wss.getUniqueID = () => {
+//   const s4 = () => {
+//     return Math.floor((1 + Math.random()) * 0x10000)
+//       .toString(16)
+//       .substring(1);
+//   };
+//   return s4() + s4() + "-" + s4();
+// };
 
 // define a custom broadcast function for wss
 wss.broadcast = () => {
-  let state = gameState.getState();
-
+  let state = canvasState.getState();
   wss.clients.forEach((client) => {
-    client.send(JSON.stringify(state));
+    client.send(JSON.stringify(Array.from(state)));
   });
 };
 
@@ -162,9 +161,7 @@ wss.broadcast = () => {
 
 wss.on("connection", (socket, req) => {
   const remoteIp = req.socket.remoteAddress;
-  console.log(remoteIp);
- 
-  gameState.addEntity(remoteIp);
+  console.log("new connection:" + remoteIp);
 
   socket.on("message", (msg) => {
     processInput(remoteIp, msg);
@@ -173,11 +170,13 @@ wss.on("connection", (socket, req) => {
 
 // Sanitize input here prior to passing to updateEntity...
 let processInput = (id, msg) => {
-  gameState.updateEntity(id, msg);
+  try {
+    let json = JSON.parse(msg);
+    canvasState.stampCanvas(json);
+  } catch (err) {
+    console.log(err);
+    return;
+  }
 };
 
-// the underlying game loop
-setInterval(() => {
-  gameState.stepSystem();
-  wss.broadcast();
-}, 4);
+setInterval(() => wss.broadcast(), 10);

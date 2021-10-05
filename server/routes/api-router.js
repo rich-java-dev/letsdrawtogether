@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const canvasState = require("../CanvasState");
 
 router.get("/", (req, res) => {
   let msg = "api root called!";
@@ -11,6 +12,11 @@ router.get("/test", (req, res) => {
   let msg = "/api/test called!";
   console.log(msg);
   res.send({ msg: msg });
+});
+
+router.post("/clearCanvas", (req, res) => {
+  canvasState.clearState();
+  res.send("success");
 });
 
 module.exports = router;
