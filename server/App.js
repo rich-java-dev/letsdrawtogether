@@ -118,7 +118,7 @@ app.get("/*", (req, res) => {
 //
 
 //start server on specified port
-var port = process.env.PORT || 8080;
+var port = process.env.PORT || 1234;
 const server = app.listen(port, () =>
   console.log(`Express Server running on port ${port}`)
 );
@@ -149,11 +149,15 @@ var wss = new WebSocketServer({
 //   return s4() + s4() + "-" + s4();
 // };
 
-// define a custom broadcast function for wss
+// define a custom broadcast function for wss.
+// only broadcast the 'latest' updates to the canvas.
 wss.broadcast = () => {
-  let state = canvasState.getState();
+  canvasState.mergeState();
+  const updateState = canvasState.getState();
+  const stateRep = JSON.stringify(Array.from(updateState));
+
   wss.clients.forEach((client) => {
-    client.send(JSON.stringify(Array.from(state)));
+    client.send(stateRep);
   });
 };
 
@@ -179,4 +183,4 @@ let processInput = (id, msg) => {
   }
 };
 
-setInterval(() => wss.broadcast(), 10);
+setInterval(() => wss.broadcast(), 100);

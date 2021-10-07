@@ -7,7 +7,7 @@ let height = window.innerHeight - 10;
 let wsClient = null;
 let canvas;
 
-const serverAddr = process.env.SERVER_ADDR || "192.168.1.5";
+const serverAddr = process.env.SERVER_ADDR || "letsdrawtogether.net";
 const serverPort = process.env.SERVER_PORT || 1234;
 const wsEndPoint = process.env.WEBSOCKET_ENDPOINT || "websockettest";
 
@@ -16,7 +16,7 @@ let canvasState = new Set();
 let mouseDown = false;
 
 const init = () => {
-  const websockConnStr = `ws://${serverAddr}:${serverPort}/${wsEndPoint}`;
+  const websockConnStr = `wss://${serverAddr}/${wsEndPoint}`;
   console.log(`Attempting to connect to websocket on: ${websockConnStr}`);
   wsClient = new WebSocket(websockConnStr);
 
@@ -57,7 +57,7 @@ const draw = (ctx) => {
 };
 
 const clearCanvas = () => {
-  const url = `http://${serverAddr}:${serverPort}/api/clearCanvas`;
+  const url = `https://letsdrawtogether.net/api/clearCanvas`;
   console.log(url);
   fetch(url, {
     method: "POST",

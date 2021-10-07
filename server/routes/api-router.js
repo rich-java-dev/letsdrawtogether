@@ -15,6 +15,7 @@ router.get("/test", (req, res) => {
 });
 
 router.post("/clearCanvas", (req, res) => {
+  console.log("clearCanvas called");
   canvasState.clearState();
   res.send("success");
 });
