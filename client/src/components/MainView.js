@@ -108,11 +108,6 @@ export const Canvas = () => {
   };
   window.addEventListener("resize", resizeCanvas, false);
 
-  const gotoLink = (path) => {
-    console.log("history push");
-    history.push(path);
-  };
-
   const changeColor = (newColor, evt) => {
     color = newColor.hex;
   };
@@ -141,12 +136,6 @@ export const Canvas = () => {
       cancelAnimationFrame(requestId);
     };
   });
-
-  useEffect(() => {
-    setInterval(() => {
-      gotoLink("/");
-    }, 30000);
-  }, []);
 
   return (
     <div>
