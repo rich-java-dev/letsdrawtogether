@@ -139,28 +139,6 @@ var wss = new WebSocketServer({
   path: process.env.WEBSOCKET_ENDPOINT || "/websockettest",
 });
 
-// // create a unique id per connection.
-// wss.getUniqueID = () => {
-//   const s4 = () => {
-//     return Math.floor((1 + Math.random()) * 0x10000)
-//       .toString(16)
-//       .substring(1);
-//   };
-//   return s4() + s4() + "-" + s4();
-// };
-
-// define a custom broadcast function for wss.
-// only broadcast the 'latest' updates to the canvas.
-wss.broadcast = () => {
-  canvasState.mergeState();
-  const updateState = canvasState.getState();
-  const stateRep = JSON.stringify(Array.from(updateState));
-
-  wss.clients.forEach((client) => {
-    client.send(stateRep);
-  });
-};
-
 // behavior of websocket once first connecting.
 
 wss.on("connection", (socket, req) => {
@@ -175,12 +153,17 @@ wss.on("connection", (socket, req) => {
 // Sanitize input here prior to passing to updateEntity...
 let processInput = (id, msg) => {
   try {
-    let json = JSON.parse(msg);
-    canvasState.stampCanvas(json);
+    let data = JSON.parse(msg);
+
+    if (data.action === "CLEAR") canvasState.clearState();
+    if (data.type !== undefined) canvasState.stampCanvas(data);
+
+    // broadcast all new changes to all open connections
+    wss.clients.forEach((client) => {
+      client.send(msg);
+    });
   } catch (err) {
     console.log(err);
     return;
   }
 };
-
-setInterval(() => wss.broadcast(), 100);

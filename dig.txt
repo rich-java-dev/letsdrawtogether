@@ -1,0 +1,5 @@
+//DNS DIG - LETSDRAWTOGETHER.NET
+
+dig @a.rootservers.net www.letsdrawtogether.net
+dig +norecurse @g.gtld-servers.net www.letsdrawtogether.net
+dig +norecurse @dns1.registrar-servers.com www.letsdrawtogether.net

@@ -22,7 +22,7 @@ const mergeState = () => {
 const stampCanvas = (props) => {
   const { color, radius, posX, posY } = props;
 
-  diff.add({
+  state.add({
     type: Types.CIRCLE,
     color: color,
     radius: radius,

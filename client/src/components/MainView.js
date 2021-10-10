@@ -1,21 +1,28 @@
 import React, { useRef, useState, useEffect } from "react";
 import { drawCircle, getRandomColor } from "../utils/Drawing";
-
-let width = window.innerWidth - 10;
-let height = window.innerHeight - 10;
-
-let wsClient = null;
-let canvas;
+import { CompactPicker } from "react-color";
+import { Button } from "@material-ui/core";
+import { MenuBar } from "./MenuBar";
+import { useHistory } from "react-router";
 
 const serverAddr = process.env.SERVER_ADDR || "letsdrawtogether.net";
-const serverPort = process.env.SERVER_PORT || 1234;
 const wsEndPoint = process.env.WEBSOCKET_ENDPOINT || "websockettest";
 
-let canvasState = new Set();
+const CLEAR_CANVAS_CMD = JSON.stringify({ action: "CLEAR" });
+
+let width = window.innerWidth - 15;
+let height = window.innerHeight - 160;
+let color = "black";
 
 let mouseDown = false;
 
+let wsClient = null;
+let canvas;
+let canvasState = new Set();
+
 const init = () => {
+  fetchCanvasState();
+
   const websockConnStr = `wss://${serverAddr}/${wsEndPoint}`;
   console.log(`Attempting to connect to websocket on: ${websockConnStr}`);
   wsClient = new WebSocket(websockConnStr);
@@ -25,8 +32,10 @@ const init = () => {
   };
 
   wsClient.onmessage = (msg) => {
-    const data = msg.data;
-    canvasState = JSON.parse(data);
+    const data = JSON.parse(msg.data);
+
+    if (data?.action === "CLEAR") canvasState.clear();
+    if (data?.type !== undefined) canvasState.add(data);
   };
 };
 
@@ -36,7 +45,7 @@ const postCircle = (canvas, event) => {
   const y = event.clientY - rect.top;
   let circleState = {
     type: "CIRCLE",
-    color: "black",
+    color: color,
     radius: 2,
     posX: x,
     posY: y,
@@ -57,11 +66,21 @@ const draw = (ctx) => {
 };
 
 const clearCanvas = () => {
-  const url = `https://letsdrawtogether.net/api/clearCanvas`;
+  wsClient.send(CLEAR_CANVAS_CMD);
+};
+
+const fetchCanvasState = () => {
+  const url = `https://letsdrawtogether.net/api/canvasState`;
   console.log(url);
   fetch(url, {
-    method: "POST",
-  });
+    method: "GET",
+  })
+    .then((res) => res.json())
+    .then((json) => {
+      console.log(json);
+      canvasState = new Set(json);
+      console.log(canvasState);
+    });
 };
 
 const handleCanvasDown = (canvas, evt) => {
@@ -79,6 +98,24 @@ const handleCanvasUp = (canvas, evt) => {
 
 export const Canvas = () => {
   const canvasRef = useRef();
+  const history = useHistory();
+
+  const resizeCanvas = (canvas, newWidth, newHeight) => {
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+    width = newWidth;
+    height = newHeight;
+  };
+  window.addEventListener("resize", resizeCanvas, false);
+
+  const gotoLink = (path) => {
+    console.log("history push");
+    history.push(path);
+  };
+
+  const changeColor = (newColor, evt) => {
+    color = newColor.hex;
+  };
 
   useEffect(async () => {
     init();
@@ -90,6 +127,10 @@ export const Canvas = () => {
 
     //render/update method, called on each key frame
     const render = async () => {
+      const width = window.innerWidth - 15;
+      const height = window.innerHeight - 160;
+      resizeCanvas(canvas, width, height);
+
       const ctx = canvas.getContext("2d");
       draw(ctx);
       requestId = requestAnimationFrame(render);
@@ -101,9 +142,18 @@ export const Canvas = () => {
     };
   });
 
+  useEffect(() => {
+    setInterval(() => {
+      gotoLink("/");
+    }, 30000);
+  }, []);
+
   return (
     <div>
-      <button onClick={clearCanvas}>Clear Canvas</button>
+      <MenuBar />
+      <div>created by Rich White</div>
+      <Button onClick={clearCanvas}>Clear Canvas</Button>
+
       <canvas
         ref={canvasRef}
         width={width}
@@ -113,6 +163,8 @@ export const Canvas = () => {
         onMouseUp={(evt) => handleCanvasUp(canvas, evt)}
         onMouseLeave={(evt) => handleCanvasUp(canvas, evt)}
       />
+
+      <CompactPicker onChange={changeColor} />
     </div>
   );
 };
