@@ -2,13 +2,11 @@ import React, { useRef, useState, useEffect } from "react";
 import { drawCircle, getRandomColor } from "../utils/Drawing";
 import { CompactPicker } from "react-color";
 import { Button } from "@material-ui/core";
-import { MenuBar } from "./MenuBar";
 import { useHistory } from "react-router";
 
 const serverAddr = process.env.SERVER_ADDR || "letsdrawtogether.net";
 const wsEndPoint = process.env.WEBSOCKET_ENDPOINT || "websockettest";
-
-const CLEAR_CANVAS_CMD = JSON.stringify({ action: "CLEAR" });
+let CLEAR_CANVAS_CMD = JSON.stringify({ action: "CLEAR", topic: roomId });
 
 let width = window.innerWidth - 15;
 let height = window.innerHeight - 160;
@@ -18,6 +16,9 @@ let mouseDown = false;
 
 let wsClient = null;
 let canvas;
+
+let roomId = "";
+
 let canvasState = new Set();
 
 const init = () => {
@@ -33,6 +34,8 @@ const init = () => {
 
   wsClient.onmessage = (msg) => {
     const data = JSON.parse(msg.data);
+    const msgTopic = data.topic;
+    if (msgTopic !== roomId) return;
 
     if (data?.action === "CLEAR") canvasState.clear();
     if (data?.type !== undefined) canvasState.add(data);
@@ -43,14 +46,15 @@ const postCircle = (canvas, event) => {
   const rect = canvas.getBoundingClientRect();
   const x = event.clientX - rect.left;
   const y = event.clientY - rect.top;
-  let circleState = {
+  let msg = {
+    topic: roomId,
     type: "CIRCLE",
     color: color,
     radius: 2,
     posX: x,
     posY: y,
   };
-  wsClient.send(JSON.stringify(circleState));
+  wsClient.send(JSON.stringify(msg));
 };
 
 const draw = (ctx) => {
@@ -70,16 +74,13 @@ const clearCanvas = () => {
 };
 
 const fetchCanvasState = () => {
-  const url = `https://letsdrawtogether.net/api/canvasState`;
-  console.log(url);
+  const url = `https://letsdrawtogether.net/api/canvasState?roomId=${roomId}`;
   fetch(url, {
     method: "GET",
   })
     .then((res) => res.json())
     .then((json) => {
-      console.log(json);
       canvasState = new Set(json);
-      console.log(canvasState);
     });
 };
 
@@ -96,9 +97,10 @@ const handleCanvasUp = (canvas, evt) => {
   mouseDown = false;
 };
 
-export const Canvas = () => {
+export const Canvas = ({ match, location }) => {
   const canvasRef = useRef();
-  const history = useHistory();
+  if (match?.params?.roomId !== undefined) roomId = match.params.roomId;
+  CLEAR_CANVAS_CMD = JSON.stringify({ action: "CLEAR", topic: roomId });
 
   const resizeCanvas = (canvas, newWidth, newHeight) => {
     canvas.width = newWidth;
@@ -113,7 +115,7 @@ export const Canvas = () => {
   };
 
   useEffect(async () => {
-    init();
+    init(roomId);
 
     canvas = canvasRef.current;
     canvas.addEventListener("mousedown", (event) => postCircle(canvas, event));
@@ -139,7 +141,6 @@ export const Canvas = () => {
 
   return (
     <div>
-      <MenuBar />
       <div>created by Rich White</div>
       <Button onClick={clearCanvas}>Clear Canvas</Button>
 

@@ -129,11 +129,14 @@ const server = app.listen(port, () =>
 
 let canvasState = require("./CanvasState");
 
+//
+// Web Socket Server Registry
+//
+
 // Set up a headless websocket server that prints any
 // events that come in.
 const WebSocketServer = require("ws").Server;
 
-// create a new web socket server.
 var wss = new WebSocketServer({
   server: server,
   path: process.env.WEBSOCKET_ENDPOINT || "/websockettest",
@@ -155,8 +158,8 @@ let processInput = (id, msg) => {
   try {
     let data = JSON.parse(msg);
 
-    if (data.action === "CLEAR") canvasState.clearState();
-    if (data.type !== undefined) canvasState.stampCanvas(data);
+    if (data.action === "CLEAR") canvasState.clearState(data.topic);
+    if (data.type !== undefined) canvasState.addRecord(data);
 
     // broadcast all new changes to all open connections
     wss.clients.forEach((client) => {

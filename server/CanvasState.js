@@ -1,26 +1,23 @@
 const { getRandomColor } = require("./utils/Utils");
 const Types = require("./utils/Types");
 
-let state = new Set();
+let stateMap = {};
 
-let diff = new Set();
-
-const getState = () => {
-  return state;
+const getState = (topic) => {
+  if (stateMap[topic] == undefined) stateMap[topic] = new Set();
+  return stateMap[topic];
 };
 
-const currDiff = () => {
-  return diff;
+const clearState = (topic) => {
+  console.log("clearState called:" + topic);
+  stateMap[topic] = new Set();
 };
 
-const mergeState = () => {
-  state = new Set([...state, ...diff]);
-  // Array.from(diff).map((obj) => state.add(obj));
-  clearDiff();
-};
-
-const stampCanvas = (props) => {
-  const { color, radius, posX, posY } = props;
+const addRecord = (props) => {
+  const { color, radius, posX, posY, topic } = props;
+  
+  if (stateMap[topic] == undefined) stateMap[topic] = new Set();
+  let state = stateMap[topic];
 
   state.add({
     type: Types.CIRCLE,
@@ -31,19 +28,8 @@ const stampCanvas = (props) => {
   });
 };
 
-const clearState = () => {
-  state.clear();
-};
-
-const clearDiff = () => {
-  diff.clear();
-};
-
 module.exports = {
   getState,
-  currDiff,
-  mergeState,
   clearState,
-  clearDiff,
-  stampCanvas,
+  addRecord,
 };

@@ -7,7 +7,11 @@ import { MenuBar } from "./components/MenuBar";
 const App = () => {
   return (
     <div className="App">
-      <Route exact path="/" component={Canvas} />
+      <MenuBar />
+      <Route exact path="/" component={Canvas}>
+        <Canvas />
+      </Route>
+      <Route path="/room/:roomId" component={Canvas} />
     </div>
   );
 };

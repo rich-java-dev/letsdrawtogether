@@ -1,6 +1,8 @@
 const express = require("express");
 const router = express.Router();
+
 const canvasState = require("../CanvasState");
+const topicRegistry = require("../TopicRegistry");
 
 const app = require("../App");
 
@@ -20,24 +22,30 @@ router.get("/test", (req, res) => {
   res.send({ msg: msg });
 });
 
-router.post("/clearCanvas", (req, res) => {
-  console.log("clearCanvas called");
-  canvasState.clearState();
-
-  console.log(app);
-
-  app.webSocketConnections().forEach((client) => {
-    client.send(CLEAR_CANVAS_ACTION);
-  });
-
-  res.send("success");
-});
-
 router.get("/canvasState", (req, res) => {
-  console.log("GET: CanvasState called");
-  let state = canvasState.getState();
+  const roomId = req.query.roomId;
+  console.log("GET: canvasState called: " + roomId);
+  let state = canvasState.getState(roomId);
 
   res.send(JSON.stringify(Array.from(state)));
+});
+
+router.post("/subscribe", (req, res) => {
+  var fwdIPStr = req.header("x-forwarded-for");
+  var IP = "";
+  if (fwdIPStr) IP = fwdIPStr = fwdIPStr.split(",")[0];
+
+  const roomId = req.query.roomId;
+  console.log("POST: subscribe: " + roomId);
+});
+
+router.post("/unsubscribe", (req, res) => {
+  var fwdIPStr = req.header("x-forwarded-for");
+  var IP = "";
+  if (fwdIPStr) IP = fwdIPStr = fwdIPStr.split(",")[0];
+
+  const roomId = req.query.roomId;
+  console.log("POST: unsubscribe: " + roomId);
 });
 
 module.exports = router;
