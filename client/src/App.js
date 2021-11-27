@@ -8,9 +8,7 @@ const App = () => {
   return (
     <div className="App">
       <MenuBar />
-      <Route exact path="/" component={Canvas}>
-        <Canvas />
-      </Route>
+      <Route exact path="/" component={Canvas}/>
       <Route path="/room/:roomId" component={Canvas} />
     </div>
   );
