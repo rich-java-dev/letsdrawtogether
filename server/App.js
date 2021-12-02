@@ -21,21 +21,7 @@ app.use(
   })
 );
 
-//
-// SESSION
-//
 
-var session = require("express-session");
-// HTTPS (secure: true/trust proxy, 1) via nginx
-app.set("trust proxy", 1);
-app.use(
-  session({
-    secret: "ac7cb3e6f7a6ee31c0be8e9c0d8994071153d1c40e0a417556a48a97f3bdf44f",
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: true },
-  })
-);
 
 //
 // LOGGING
