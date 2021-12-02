@@ -8,3 +8,14 @@ export const drawCircle = (props) => {
   ctx.strokeStyle = color;
   ctx.stroke();
 };
+
+export const drawBezier = (props) =>{
+  const { ctx, posX, posY, radius, color } = props;
+
+  ctx.beginPath();
+  ctx.arc(posX, posY, radius, 0, 2 * Math.PI);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = color;
+  ctx.stroke();
+}

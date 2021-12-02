@@ -19,7 +19,12 @@ let canvas;
 
 let roomId = "";
 
+let bezierCurveSet = new Set();
+
 let canvasState = new Set();
+let diffState = new Set();
+
+let clearFlag = false;
 
 const init = () => {
   fetchCanvasState();
@@ -37,8 +42,12 @@ const init = () => {
     const msgTopic = data.topic;
     if (msgTopic !== roomId) return;
 
-    if (data?.action === "CLEAR") canvasState.clear();
-    if (data?.type !== undefined) canvasState.add(data);
+    if (data?.action === "CLEAR") {
+      canvasState.clear();
+      clearFlag = true;
+      console.log("Clear called");
+    }
+    if (data?.type !== undefined) diffState.add(data);
   };
 };
 
@@ -58,15 +67,35 @@ const postCircle = (canvas, event) => {
 };
 
 const draw = (ctx) => {
-  ctx.fillStyle = "white";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  if (clearFlag) {
+    console.log("Clear Canvas");
+    clearLocalCanvas(ctx);
+    clearFlag = false;
+  }
+  // ctx.fillStyle = "white";
+  // ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  Array.from(canvasState).map((obj) => {
+  Array.from(diffState).map((obj) => {
     drawCircle({
       ctx,
       ...obj,
     });
   });
+
+  canvasState = new Set([...canvasState, ...diffState]);
+  diffState = new Set();
+  // Array.from(canvasState).map((obj) => {
+  //   drawCircle({
+  //     ctx,
+  //     ...obj,
+  //   });
+  // });
+};
+
+const clearLocalCanvas = (ctx) => {
+  console.log("Clear Canvas called");
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 };
 
 const clearCanvas = () => {
@@ -80,7 +109,7 @@ const fetchCanvasState = () => {
   })
     .then((res) => res.json())
     .then((json) => {
-      canvasState = new Set(json);
+      diffState = new Set(json);
     });
 };
 
@@ -108,6 +137,7 @@ export const Canvas = ({ match, location }) => {
     width = newWidth;
     height = newHeight;
   };
+
   window.addEventListener("resize", resizeCanvas, false);
 
   const changeColor = (newColor, evt) => {
@@ -126,7 +156,7 @@ export const Canvas = ({ match, location }) => {
     const render = async () => {
       const width = window.innerWidth - 15;
       const height = window.innerHeight - 160;
-      resizeCanvas(canvas, width, height);
+      // resizeCanvas(canvas, width, height);
 
       const ctx = canvas.getContext("2d");
       draw(ctx);
