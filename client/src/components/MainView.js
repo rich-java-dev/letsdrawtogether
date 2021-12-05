@@ -26,6 +26,9 @@ let diffState = new Set();
 
 let clearFlag = false;
 
+let prevX = 0;
+let prevY = 0;
+
 const init = () => {
   fetchCanvasState();
 
@@ -42,19 +45,19 @@ const init = () => {
     const msgTopic = data.topic;
     if (msgTopic !== roomId) return;
 
-    if (data?.action === "CLEAR") {
+    if (data?.type !== undefined) diffState.add(data);
+    else if (data?.action === "CLEAR") {
       canvasState.clear();
       clearFlag = true;
       console.log("Clear called");
     }
-    if (data?.type !== undefined) diffState.add(data);
   };
 };
 
-const postCircle = (canvas, event) => {
+const postCircle = async (canvas, event) => {
   const rect = canvas.getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
+  const x = Math.floor(event.clientX - rect.left);
+  const y = Math.floor(event.clientY - rect.top);
   let msg = {
     topic: roomId,
     type: "CIRCLE",
@@ -64,6 +67,32 @@ const postCircle = (canvas, event) => {
     posY: y,
   };
   wsClient.send(JSON.stringify(msg));
+
+  if (mouseDown && prevX > 0 && prevY > 0) {
+    const prevRad = Math.sqrt(Math.pow(x - prevX, 2) + Math.pow(y - prevY, 2));
+
+    if (prevRad > 4) {
+      const slope = (y - prevY) / (x - prevX);
+
+      const cos = (x - prevX) / prevRad;
+      const sin = (y - prevY) / prevRad;
+
+      for (let i = 1; i <= prevRad; i++) {
+        let interpolate = {
+          topic: roomId,
+          type: "CIRCLE",
+          color: color,
+          radius: 2,
+          posX: prevX + i * cos,
+          posY: prevY + i * sin,
+        };
+        wsClient.send(JSON.stringify(interpolate));
+      }
+    }
+  }
+
+  prevX = x;
+  prevY = y;
 };
 
 const draw = (ctx) => {
@@ -113,17 +142,19 @@ const fetchCanvasState = () => {
     });
 };
 
-const handleCanvasDown = (canvas, evt) => {
+const handleCanvasDown = async (canvas, evt) => {
   postCircle(canvas, evt);
   mouseDown = true;
 };
 
-const handleCanvasMove = (canvas, evt) => {
+const handleCanvasMove = async (canvas, evt) => {
   if (mouseDown) postCircle(canvas, evt);
 };
 
 const handleCanvasUp = (canvas, evt) => {
   mouseDown = false;
+  prevX = 0;
+  prevY = 0;
 };
 
 export const Canvas = ({ match, location }) => {
