@@ -10,13 +10,16 @@ const websockConnStr = `wss://${serverAddr}/${wsEndPoint}`;
 //
 // take screenshot of home page (after its fully loaded and no more than 2 connections open)
 //
-const screenshot = async (name) => {
+const screenshot = async (topic = "", name = "screenshot.png") => {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
-  await page.goto("https://www.letsdrawtogether.net/room/test", {
-    waitUntil: "networkidle2",
-  });
+  await page.goto(
+    `https://www.letsdrawtogether.net/${topic !== "" ? "room/" + topic : ""}`,
+    {
+      waitUntil: "networkidle0",
+    }
+  );
   await page.screenshot({ path: name });
   await browser.close();
 };
