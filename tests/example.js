@@ -21,7 +21,5 @@ const run = async () => {
 // drawPointilismImage("test", "../img/monalisa.png");
 // wsRandomDots();
 
-// drawImage("", "../img/monalisa.png");
+drawImage("", "../img/monalisa.png");
 // puppeteerRandomDots();
-
-drawImage("test", "../img/warhol.png");
