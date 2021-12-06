@@ -21,8 +21,6 @@ app.use(
   })
 );
 
-
-
 //
 // LOGGING
 //
@@ -140,12 +138,12 @@ wss.on("connection", (socket, req) => {
 });
 
 // Sanitize input here prior to passing to updateEntity...
-let processInput = (id, msg) => {
+const processInput = async (id, msg) => {
   try {
-    let data = JSON.parse(msg);
+    const data = JSON.parse(msg);
 
     if (data.action === "CLEAR") canvasState.clearState(data.topic);
-    if (data.type !== undefined) canvasState.addRecord(data);
+    else if (data.type !== undefined) canvasState.addRecord(data);
 
     // broadcast all new changes to all open connections
     wss.clients.forEach((client) => {
