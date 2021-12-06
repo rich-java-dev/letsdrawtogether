@@ -24,16 +24,20 @@ const screenshot = async (topic = "", name = "screenshot.png") => {
   await browser.close();
 };
 
-const drawRandomDots = async () => {
+const drawRandomDots = async (topic="") => {
   const offsetX = 10;
   const offsetY = 70;
 
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
-  await page.goto("https://www.letsdrawtogether.net/room/test", {
-    waitUntil: "networkidle2",
-  });
+  await page.goto(
+    `https://www.letsdrawtogether.net/${topic !== "" ? "room/" + topic : ""}`,
+    {
+      waitUntil: "networkidle0",
+    }
+  );
+
 
   // synchronously iterate over large range producing random points/data
   for (let i = 0; i < 1000; i++) {
@@ -42,7 +46,7 @@ const drawRandomDots = async () => {
     await page.mouse.click(posX, posY);
   }
 
-  await page.screenshot({ path: "puppeteer-test.png" });
+  await page.screenshot({ path: "screenshots/puppeteer-test.png" });
   await browser.close();
 };
 

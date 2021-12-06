@@ -1,6 +1,8 @@
 const ws = require("ws").WebSocket;
 var Jimp = require("jimp");
 
+const { performance } = require('perf_hooks');
+
 // enable .env file
 require("dotenv").config();
 
@@ -11,7 +13,8 @@ const websockConnStr = `wss://${serverAddr}/${wsEndPoint}`;
 console.log(`Attempting to connect to websocket on: ${websockConnStr}`);
 let wsClient = new ws(websockConnStr);
 
-const postCircle = (topic, x, y, color, radius = 1) => {
+//adhere to original API/format server expects
+const postCircle = async (topic, x, y, color, radius = 1) => {
   let msg = {
     topic: topic,
     type: "CIRCLE",
@@ -23,37 +26,63 @@ const postCircle = (topic, x, y, color, radius = 1) => {
   wsClient.send(JSON.stringify(msg));
 };
 
-wsClient.onmessage = (msg) => {
-  const data = JSON.parse(msg.data);
-  const msgTopic = data.topic;
-};
+// wsClient.onmessage = (msg) => {
+//   const data = JSON.parse(msg.data);
+//   const msgTopic = data.topic;
+// };
 
 //
-// Draw the Mona Lisa as a benchmark/peformance test
+// Draw Image to a given board ('topic'), and benchmark performance
 //
 const drawImage = async (topic, imagePath) => {
   wsClient.onopen = () => {
     console.log("WebSocket Client Connected");
 
+    //read in image from path
     img = Jimp.read(imagePath, (err, image) => {
       console.log("Read in " + imagePath);
 
       const width = image.bitmap.width;
       const height = image.bitmap.height;
 
-      console.time("image-write");
+      //deconstruct image into 5 basic ints: x, y, r, g, b
+      let points = [];
       for (let i = 1; i < width + 1; i++) {
         for (let j = 1; j < height + 1; j++) {
           const pixel = Jimp.intToRGBA(image.getPixelColor(i, j));
-          let color = `rgb(${pixel.r}, ${pixel.g}, ${pixel.b})`;
-          postCircle(topic, i, j, color);
+          const color = `rgb(${pixel.r}, ${pixel.g}, ${pixel.b})`;
+          points.push({
+            x: i,
+            y: j,
+            color: color,
+          });
         }
       }
+      console.time("image-write");
+      let startTime = performance.now();
+      points.map(point => {
+        postCircle(topic, point.x, point.y, point.color);
+      })
 
+      let received = 0;
       wsClient.onmessage = (msg) => {
+        received++;
         const data = JSON.parse(msg.data);
-        if (data.posX == width && data.posY == height)
+
+        // check if this is the last bit recieved.
+        if (data.posX == width && data.posY == height) {
+          let endTime = performance.now();
           console.timeEnd("image-write");
+
+          let totalTimeLapse = endTime - startTime;
+          let count = width * height;
+
+          console.log(`POINTS SENT: ${count}`);
+          console.log(`POINTS RECEIVED: ${received}`)
+          console.log(`AVG THROUGHPUT: ${count / totalTimeLapse} round-trip transmits/ms`);
+          console.log(`AVG THROUGHPUT: ${1000 * count / totalTimeLapse} round-trip transmits/sec`);
+
+        }
       };
     });
   };
@@ -72,19 +101,16 @@ const drawPointilismImage = async (topic, imagePath) => {
       const width = image.bitmap.width;
       const height = image.bitmap.height;
 
-      console.time("pimage-write");
       for (let i = 0; i < width; i++) {
         for (let j = 0; j < height; j++) {
           const pixel = Jimp.intToRGBA(image.getPixelColor(i, j));
           let color = `rgb(${pixel.r}, ${pixel.g}, ${pixel.b})`;
-          postCircle(topic, i * 2, j * 2, color);
+          postCircle(topic, i * 2, j * 2, color, 2);
         }
       }
 
       wsClient.onmessage = (msg) => {
         const data = JSON.parse(msg.data);
-        if (data.posX == width * 2 && data.posY == height * 2)
-          console.timeEnd("pimage-write");
       };
     });
   };
