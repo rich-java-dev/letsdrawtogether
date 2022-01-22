@@ -6,18 +6,17 @@ import { useHistory } from "react-router";
 
 const serverAddr = process.env.SERVER_ADDR || "letsdrawtogether.net";
 const wsEndPoint = process.env.WEBSOCKET_ENDPOINT || "websockettest";
+let roomId = "";
 let CLEAR_CANVAS_CMD = JSON.stringify({ action: "CLEAR", topic: roomId });
 
 let width = window.innerWidth - 15;
-let height = window.innerHeight - 160;
+let height = window.innerHeight - 200;
 let color = "black";
 
 let mouseDown = false;
 
 let wsClient = null;
 let canvas;
-
-let roomId = "";
 
 let bezierCurveSet = new Set();
 
@@ -55,6 +54,7 @@ const init = () => {
 };
 
 const postCircle = async (canvas, event) => {
+  event.preventDefault();
   const rect = canvas.getBoundingClientRect();
   const x = Math.floor(event.clientX - rect.left);
   const y = Math.floor(event.clientY - rect.top);
@@ -77,14 +77,14 @@ const postCircle = async (canvas, event) => {
       const cos = (x - prevX) / prevRad;
       const sin = (y - prevY) / prevRad;
 
-      for (let i = 1; i <= prevRad; i++) {
+      for (let i = 1; i <= prevRad / 2; i++) {
         let interpolate = {
           topic: roomId,
           type: "CIRCLE",
           color: color,
           radius: 2,
-          posX: prevX + i * cos,
-          posY: prevY + i * sin,
+          posX: prevX + 2 * i * cos,
+          posY: prevY + 2 * i * sin,
         };
         wsClient.send(JSON.stringify(interpolate));
       }
@@ -202,7 +202,6 @@ export const Canvas = ({ match, location }) => {
 
   return (
     <div>
-      <div>created by Rich White</div>
       <Button onClick={clearCanvas}>Clear Canvas</Button>
 
       <canvas
@@ -210,7 +209,10 @@ export const Canvas = ({ match, location }) => {
         width={width}
         height={height}
         onMouseDown={(evt) => handleCanvasDown(canvas, evt)}
+        onTouchStart={(evt) => handleCanvasDown(canvas, evt)}
         onMouseMove={(evt) => handleCanvasMove(canvas, evt)}
+        onTouchMove={(evt) => handleCanvasMove(canvas, evt)}
+        onTouchEnd={(evt) => handleCanvasUp(canvas, evt)}
         onMouseUp={(evt) => handleCanvasUp(canvas, evt)}
         onMouseLeave={(evt) => handleCanvasUp(canvas, evt)}
       />
