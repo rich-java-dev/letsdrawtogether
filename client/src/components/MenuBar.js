@@ -14,6 +14,9 @@ import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 
+
+import {clearCanvas} from "./MainView";
+
 const useStyles = makeStyles({
   toolBar: {
     display: "flex",

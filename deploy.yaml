@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lets-draw-together
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lets-draw-together
+  template:
+    metadata:
+      labels:
+        app: lets-draw-together
+    spec:
+      containers:
+      - image: letsdrawtogether:latest
+        name: lets-draw-together
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 1234
+

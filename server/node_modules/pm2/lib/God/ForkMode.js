@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2021 the PM2 project authors. All rights reserved.
+ * Copyright 2013-2022 the PM2 project authors. All rights reserved.
  * Use of this source code is governed by a license that
  * can be found in the LICENSE file.
  */
@@ -55,12 +55,7 @@ module.exports = function ForkMode(God) {
       }
 
       if (interpreter === 'node' || RegExp('node$').test(interpreter)) {
-        if (semver.lt(process.version, '10.0.0')) {
-          args.push(path.resolve(path.dirname(module.filename), '..', 'ProcessContainerForkLegacy.js'));
-        }
-        else {
-          args.push(path.resolve(path.dirname(module.filename), '..', 'ProcessContainerFork.js'));
-        }
+        args.push(path.resolve(path.dirname(module.filename), '..', 'ProcessContainerFork.js'));
       }
       else
         args.push(pm2_env.pm_exec_path);

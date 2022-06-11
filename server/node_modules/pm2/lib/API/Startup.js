@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2021 the PM2 project authors. All rights reserved.
+ * Copyright 2013-2022 the PM2 project authors. All rights reserved.
  * Use of this source code is governed by a license that
  * can be found in the LICENSE file.
  */
@@ -275,6 +275,7 @@ module.exports = function(CLI) {
       template = getTemplate('launchd');
       destination = path.join(process.env.HOME, 'Library/LaunchAgents/' + launchd_service_name + '.plist');
       commands = [
+        'mkdir -p ' + path.join(process.env.HOME, 'Library/LaunchAgents'),
         'launchctl load -w ' + destination
       ]
       break;

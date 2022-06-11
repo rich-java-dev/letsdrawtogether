@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2021 the PM2 project authors. All rights reserved.
+ * Copyright 2013-2022 the PM2 project authors. All rights reserved.
  * Use of this source code is governed by a license that
  * can be found in the LICENSE file.
  */
@@ -257,9 +257,9 @@ Client.prototype.launchDaemon = function(opts, cb) {
     detached   : true,
     cwd        : that.conf.cwd || process.cwd(),
     windowsHide: true,
-    env        : util._extend({
-      'SILENT'      : that.conf.DEBUG ? !that.conf.DEBUG : true,
-      'PM2_HOME'   : that.pm2_home
+    env        : Object.assign({
+      'SILENT'    : that.conf.DEBUG ? !that.conf.DEBUG : true,
+      'PM2_HOME'  : that.pm2_home
     }, process.env),
     stdio      : ['ipc', out, err]
   });

@@ -15,13 +15,13 @@ const useStyles = makeStyles({
     maxHeight: "200px",
   },
   typography: {
-    width: "50vw",
+    width: "70vw",
   },
   gap: {
-    width: "20vw",
+    width: "5vw",
   },
-  vgap: {
-    height: "100px",
+  static_gaps: {
+    width: "50px",
   },
 });
 
@@ -30,30 +30,16 @@ const About = () => {
 
   return (
     <div className={classes.root}>
-      <div className={classes.vgap}></div>
+      <div className={classes.gap}></div>
       <Avatar className={classes.avatar} alt="RW" src="aboutme.png" />
-
-      <Typography className={classes.typography}>
-        Hello! My name is Richard White. <br />
-        I am a software developer based out of NJ. <br />
-        Computer science, education, and art are a few of my passions I
-        wanted to to bring together in this fun project. <br />
-        
-        While this site is still in very early development, I plan to
-        incorporate more interaction, support and new features/variants.
-        <br />
-        This site was built with:
-        <br />
-        react
-        express
-        websockets
-        couchdb
-        docker
-        kubernetes
-
-        <br />
-        If you have any questions or comments you can reach me at
-        <br />
+      <div className={classes.gap} />
+      <Typography className={classes.typography} align={"justify"}>
+        Hello! My name is Richard White. I am a software developer and data engineer based out of
+        NJ. Computer science, education, and art are a few of my passions I
+        wanted to to bring together in this fun project. While this site is
+        still in very early development, I plan to incorporate more interaction,
+        support and new features/variants. If you have any questions or comments
+        you can reach me at: <br />
         <a href="mailto:therichphysicist@gmail.com">
           therichphysicist@gmail.com
         </a>

@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2021 the PM2 project authors. All rights reserved.
+ * Copyright 2013-2022 the PM2 project authors. All rights reserved.
  * Use of this source code is governed by a license that
  * can be found in the LICENSE file.
  */
@@ -98,7 +98,7 @@ var Utility = module.exports = {
     if (cst.PM2_LOG_DATE_FORMAT && typeof cst.PM2_LOG_DATE_FORMAT == 'string') {
       // Generate timestamp prefix
       function timestamp(){
-        return `${dayjs(Date.now()).format('YYYY-MM-DDTHH:mm:ss')}:`;
+        return `${dayjs(Date.now()).format(cst.PM2_LOG_DATE_FORMAT)}:`;
       }
 
       var hacks = ['info', 'log', 'error', 'warn'], consoled = {};

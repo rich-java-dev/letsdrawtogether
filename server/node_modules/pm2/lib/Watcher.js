@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2021 the PM2 project authors. All rights reserved.
+ * Copyright 2013-2022 the PM2 project authors. All rights reserved.
  * Use of this source code is governed by a license that
  * can be found in the LICENSE file.
  */
@@ -42,7 +42,7 @@ module.exports = function ClusterMode(God) {
     };
 
     if (pm2_env.watch_options) {
-      watch_options = util._extend(watch_options, pm2_env.watch_options);
+      watch_options = Object.assign(watch_options, pm2_env.watch_options);
     }
 
     log('Watch opts', watch_options);

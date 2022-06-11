@@ -22,11 +22,11 @@ router.get("/test", (req, res) => {
   res.send({ msg: msg });
 });
 
-router.get("/canvasState", (req, res) => {
+router.get("/canvasState", async (req, res) => {
   const roomId = req.query.roomId;
   console.log("GET: canvasState called: " + roomId);
-  let state = canvasState.getState(roomId);
-
+  let state = await canvasState.getState(roomId);
+  console.log(state)
   res.send(JSON.stringify(Array.from(state)));
 });
 

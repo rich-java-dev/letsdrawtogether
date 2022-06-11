@@ -56,6 +56,11 @@ app.use((req, res, next) => {
 });
 
 //
+// MONGODB / DB Layer
+//
+// HANDLED IN CanvasState
+
+//
 // json payload/API handling for body
 //
 
@@ -130,7 +135,7 @@ var wss = new WebSocketServer({
 
 wss.on("connection", (socket, req) => {
   const remoteIp = req.socket.remoteAddress;
-  console.log("new connection:" + remoteIp);
+  logInfo.info("new connection:" + remoteIp);
 
   socket.on("message", (msg) => {
     processInput(remoteIp, msg);

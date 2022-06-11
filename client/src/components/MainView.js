@@ -3,6 +3,11 @@ import { drawCircle, getRandomColor } from "../utils/Drawing";
 import { CompactPicker } from "react-color";
 import { Button } from "@material-ui/core";
 import { useHistory } from "react-router";
+import {
+  disableBodyScroll,
+  enableBodyScroll,
+  clearAllBodyScrollLocks,
+} from "body-scroll-lock";
 
 const serverAddr = process.env.SERVER_ADDR || "letsdrawtogether.net";
 const wsEndPoint = process.env.WEBSOCKET_ENDPOINT || "websockettest";
@@ -54,10 +59,18 @@ const init = () => {
 };
 
 const postCircle = async (canvas, event) => {
-  event.preventDefault();
+  //event.preventDefault();
+
   const rect = canvas.getBoundingClientRect();
-  const x = Math.floor(event.clientX - rect.left);
-  const y = Math.floor(event.clientY - rect.top);
+
+  let x = Math.floor(event.clientX - rect.left);
+  let y = Math.floor(event.clientY - rect.top);
+
+  if (event.type === "touchmove") {
+    x = event.touches[0].screenX;
+    y = event.touches[0].screenY;
+  }
+
   let msg = {
     topic: roomId,
     type: "CIRCLE",
@@ -127,7 +140,7 @@ const clearLocalCanvas = (ctx) => {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 };
 
-const clearCanvas = () => {
+export const clearCanvas = () => {
   wsClient.send(CLEAR_CANVAS_CMD);
 };
 
@@ -138,7 +151,9 @@ const fetchCanvasState = () => {
   })
     .then((res) => res.json())
     .then((json) => {
-      diffState = new Set(json);
+      console.log(json)
+      json.map(a=>diffState.add(a))
+      // diffState = json;
     });
 };
 
@@ -148,7 +163,9 @@ const handleCanvasDown = async (canvas, evt) => {
 };
 
 const handleCanvasMove = async (canvas, evt) => {
-  if (mouseDown) postCircle(canvas, evt);
+  if (mouseDown) {
+    postCircle(canvas, evt);
+  }
 };
 
 const handleCanvasUp = (canvas, evt) => {
@@ -169,6 +186,7 @@ export const Canvas = ({ match, location }) => {
     height = newHeight;
   };
 
+  disableBodyScroll(canvasRef);
   window.addEventListener("resize", resizeCanvas, false);
 
   const changeColor = (newColor, evt) => {
@@ -179,7 +197,6 @@ export const Canvas = ({ match, location }) => {
     init(roomId);
 
     canvas = canvasRef.current;
-    canvas.addEventListener("mousedown", (event) => postCircle(canvas, event));
 
     let requestId;
 
@@ -209,12 +226,12 @@ export const Canvas = ({ match, location }) => {
         width={width}
         height={height}
         onMouseDown={(evt) => handleCanvasDown(canvas, evt)}
-        onTouchStart={(evt) => handleCanvasDown(canvas, evt)}
         onMouseMove={(evt) => handleCanvasMove(canvas, evt)}
-        onTouchMove={(evt) => handleCanvasMove(canvas, evt)}
-        onTouchEnd={(evt) => handleCanvasUp(canvas, evt)}
         onMouseUp={(evt) => handleCanvasUp(canvas, evt)}
         onMouseLeave={(evt) => handleCanvasUp(canvas, evt)}
+        onTouchStart={(evt) => handleCanvasDown(canvas, evt)}
+        onTouchMove={(evt) => handleCanvasMove(canvas, evt)}
+        onTouchEnd={(evt) => handleCanvasUp(canvas, evt)}
       />
 
       <CompactPicker onChange={changeColor} />

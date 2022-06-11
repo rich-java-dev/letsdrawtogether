@@ -1,5 +1,5 @@
 /**
- * Copyright 2013-2021 the PM2 project authors. All rights reserved.
+ * Copyright 2013-2022 the PM2 project authors. All rights reserved.
  * Use of this source code is governed by a license that
  * can be found in the LICENSE file.
  */
@@ -81,7 +81,7 @@ Config.filterOptions = function(cmd) {
  */
 Config.validateJSON = function(json){
   // clone config
-  var conf = util._extend({}, json),
+  var conf = Object.assign({}, json),
       res = {};
   this._errors = [];
 
