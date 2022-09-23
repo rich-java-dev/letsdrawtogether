@@ -34,9 +34,9 @@ const About = () => {
       <Avatar className={classes.avatar} alt="RW" src="aboutme.png" />
       <div className={classes.gap} />
       <Typography className={classes.typography} align={"justify"}>
-        Hello! My name is Richard White. I am a software developer and data engineer based out of
-        NJ. Computer science, education, and art are a few of my passions I
-        wanted to to bring together in this fun project. While this site is
+        Hello! My name is Richard White. I am a software and data engineer based
+        out of NJ. Computer science, education, and art are a few of my passions
+        I wanted to to bring together in this fun project. While this site is
         still in very early development, I plan to incorporate more interaction,
         support and new features/variants. If you have any questions or comments
         you can reach me at: <br />

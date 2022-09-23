@@ -1,22 +1,45 @@
 import React, { useRef, useState, useEffect } from "react";
-import { drawCircle, getRandomColor } from "../utils/Drawing";
-import { CompactPicker } from "react-color";
-import { Button } from "@material-ui/core";
 import { useHistory } from "react-router";
+import { makeStyles } from "@material-ui/styles";
 import {
   disableBodyScroll,
   enableBodyScroll,
   clearAllBodyScrollLocks,
 } from "body-scroll-lock";
 
-const serverAddr = process.env.SERVER_ADDR || "letsdrawtogether.net";
+import { CompactPicker } from "react-color";
+import { Button, Checkbox, Box, TextField } from "@material-ui/core";
+
+import { drawCircle, getRandomColor } from "../utils/Drawing";
+// import { DrawPanel } from "./DrawPanel";
+
+const useStyles = makeStyles({
+  root: {
+    display: "flex",
+    justifyContent: "space-between",
+  },
+  paintBar: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "10px",
+  },
+  cursorSize: {
+    width: "60px",
+  },
+});
+
+const serverAddr = process.env.SERVER_ADDR || "drawing.richwhite.net";
 const wsEndPoint = process.env.WEBSOCKET_ENDPOINT || "websockettest";
 let roomId = "";
 let CLEAR_CANVAS_CMD = JSON.stringify({ action: "CLEAR", topic: roomId });
 
 let width = window.innerWidth - 15;
 let height = window.innerHeight - 200;
+
 let color = "black";
+let hue = 0;
 
 let mouseDown = false;
 
@@ -58,7 +81,7 @@ const init = () => {
   };
 };
 
-const postCircle = async (canvas, event) => {
+const postCircle = async (canvas, event, radius = 2, rainbowMode = false) => {
   //event.preventDefault();
 
   const rect = canvas.getBoundingClientRect();
@@ -71,11 +94,13 @@ const postCircle = async (canvas, event) => {
     y = event.touches[0].screenY;
   }
 
+  color = rainbowMode ? incHue() : color;
+
   let msg = {
     topic: roomId,
     type: "CIRCLE",
     color: color,
-    radius: 2,
+    radius: radius,
     posX: x,
     posY: y,
   };
@@ -95,7 +120,7 @@ const postCircle = async (canvas, event) => {
           topic: roomId,
           type: "CIRCLE",
           color: color,
-          radius: 2,
+          radius: radius,
           posX: prevX + 2 * i * cos,
           posY: prevY + 2 * i * sin,
         };
@@ -144,6 +169,8 @@ export const clearCanvas = () => {
   wsClient.send(CLEAR_CANVAS_CMD);
 };
 
+//
+//
 const fetchCanvasState = () => {
   const url = `https://letsdrawtogether.net/api/canvasState?roomId=${roomId}`;
   fetch(url, {
@@ -151,48 +178,83 @@ const fetchCanvasState = () => {
   })
     .then((res) => res.json())
     .then((json) => {
-      console.log(json)
-      json.map(a=>diffState.add(a))
+      json.map((a) => diffState.add(a));
       // diffState = json;
     });
 };
 
-const handleCanvasDown = async (canvas, evt) => {
-  postCircle(canvas, evt);
-  mouseDown = true;
+//
+//
+const incHue = () => {
+  hue += 1;
+  if (hue > 360) hue -= 360;
+  return `hsl(${hue}, 100%, 50%)`;
 };
 
-const handleCanvasMove = async (canvas, evt) => {
-  if (mouseDown) {
-    postCircle(canvas, evt);
-  }
-};
-
+//
+//
 const handleCanvasUp = (canvas, evt) => {
   mouseDown = false;
   prevX = 0;
   prevY = 0;
 };
 
+//
+//
+const resizeCanvas = (canvas, newWidth, newHeight) => {
+  canvas.width = newWidth;
+  canvas.height = newHeight;
+  width = newWidth;
+  height = newHeight;
+};
+
+//
+//
 export const Canvas = ({ match, location }) => {
+  const classes = useStyles();
   const canvasRef = useRef();
+
+  const [cursorSize, setCursorSize] = useState(2);
+  const [rainbowMode, setRainbowMode] = useState(false);
+
   if (match?.params?.roomId !== undefined) roomId = match.params.roomId;
   CLEAR_CANVAS_CMD = JSON.stringify({ action: "CLEAR", topic: roomId });
-
-  const resizeCanvas = (canvas, newWidth, newHeight) => {
-    canvas.width = newWidth;
-    canvas.height = newHeight;
-    width = newWidth;
-    height = newHeight;
-  };
 
   disableBodyScroll(canvasRef);
   window.addEventListener("resize", resizeCanvas, false);
 
+  //
   const changeColor = (newColor, evt) => {
     color = newColor.hex;
   };
 
+  //
+  const changeCursorSize = (evt) => {
+    const val = evt.target.value;
+    try {
+      setCursorSize(parseInt(val));
+    } catch (err) {}
+  };
+
+  //
+  const changeRainbowMode = () => {
+    setRainbowMode(!rainbowMode);
+  };
+
+  //
+  const handleCanvasDown = async (canvas, evt) => {
+    postCircle(canvas, evt, cursorSize, rainbowMode);
+    mouseDown = true;
+  };
+
+  //
+  const handleCanvasMove = async (canvas, evt) => {
+    if (mouseDown) {
+      postCircle(canvas, evt, cursorSize, rainbowMode);
+    }
+  };
+
+  //
   useEffect(async () => {
     init(roomId);
 
@@ -217,6 +279,7 @@ export const Canvas = ({ match, location }) => {
     };
   });
 
+  //
   return (
     <div>
       <Button onClick={clearCanvas}>Clear Canvas</Button>
@@ -234,7 +297,26 @@ export const Canvas = ({ match, location }) => {
         onTouchEnd={(evt) => handleCanvasUp(canvas, evt)}
       />
 
-      <CompactPicker onChange={changeColor} />
+      <div className={classes.paintBar}>
+        <CompactPicker onChange={changeColor} />
+
+        <div></div>
+        <Box>
+          <TextField
+            className={classes.cursorSize}
+            value={cursorSize}
+            label="cursor size"
+            variant="outlined"
+            onChange={changeCursorSize}
+          />
+
+          <Checkbox
+            value={rainbowMode}
+            label="Rainbow Mode"
+            onChange={changeRainbowMode}
+          />
+        </Box>
+      </div>
     </div>
   );
 };

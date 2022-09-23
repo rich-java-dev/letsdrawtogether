@@ -19,7 +19,7 @@ const drawPointilismImage = require("./websocket-tests").drawPointilismImage;
  */
 
 const run = async () => {
-  await drawImage("", "../img/fourier.png");
+  await drawImage("", "../img/monalisa.png");
   // await screenshot("", "screenshots/test.png");
 
   //  await wsRandomDots();
