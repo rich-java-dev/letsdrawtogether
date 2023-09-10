@@ -14,8 +14,7 @@ import { useState } from "react";
 import { useHistory } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
 
-
-import {clearCanvas} from "./MainView";
+import { clearCanvas } from "./MainView";
 
 const useStyles = makeStyles({
   toolBar: {
@@ -71,7 +70,7 @@ export const MenuBar = (props) => {
         <Toolbar className={classes.toolBar}>
           <Typography>
             <Box fontWeight="600" fontSize={24}>
-              letsdrawtogether.net
+              draw together
             </Box>
           </Typography>
 
@@ -110,6 +109,10 @@ export const MenuBar = (props) => {
 
           <Button color="inherit" onClick={() => gotoLink("/about")}>
             About
+          </Button>
+
+          <Button color="inherit" onClick={() => gotoLink("/profile")}>
+            Profile
           </Button>
 
           <Button color="inherit" onClick={() => gotoLink("/login")}>

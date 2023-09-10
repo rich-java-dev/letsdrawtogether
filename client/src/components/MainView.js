@@ -172,7 +172,7 @@ export const clearCanvas = () => {
 //
 //
 const fetchCanvasState = () => {
-  const url = `https://letsdrawtogether.net/api/canvasState?roomId=${roomId}`;
+  const url = `https://drawing.richwhite.net/api/canvasState?roomId=${roomId}`;
   fetch(url, {
     method: "GET",
   })

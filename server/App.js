@@ -66,11 +66,12 @@ app.use((req, res, next) => {
 
 var session = require("express-session");
 var bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
 
 // parse encoded/json
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.use(cookieParser());
 //
 // REACT FRONT-END
 //
