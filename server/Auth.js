@@ -1,7 +1,13 @@
 // Auth.js
 
 const jwt = require("jsonwebtoken");
-const jwtSecret = "TESTTESTTESTTEST";
+
+// enable .env file
+const dotenv = require("dotenv");
+dotenv.config();
+
+const JWT_SECRET = process.env.JWT_SECRET;
+const MONGO_ENDPOINT = process.env.MONGO_ENDPOINT;
 
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
@@ -13,7 +19,10 @@ const User = mongoose.model("User", UserSchema);
 
 let load = false;
 const init = async () => {
-  await mongoose.connect("mongodb://mongo/letsdrawtogether");
+  await mongoose.connect(MONGO_ENDPOINT);
+  let userObj = { userName: "test", pw: "test" };
+  const user = await User.findOne(userObj);
+  if (!user) User.create(userObj);
   load = true;
 };
 
@@ -44,11 +53,15 @@ const userLogin = async (req, res, next) => {
   const userName = req.body.userName;
   const pw = req.body.pw;
 
+  if (!load) await init();
+
   try {
-    if (userName == "test" && pw == "test") {
+    let userObj = { userName: userName, pw: pw };
+    const user = await User.findOne(userObj);
+    if (user) {
       const maxAge = 3 * 60 * 60; // 3 hrs in seconds
 
-      token = jwt.sign({ userName: userName }, jwtSecret, {
+      token = jwt.sign({ userName: userName }, JWT_SECRET, {
         expiresIn: maxAge,
       });
 
@@ -78,7 +91,7 @@ const userLogin = async (req, res, next) => {
 const userAuth = (req, res, next) => {
   const token = req.cookies.jwt;
   if (token) {
-    jwt.verify(token, jwtSecret, (err, decodedToken) => {
+    jwt.verify(token, JWT_SECRET, (err, decodedToken) => {
       if (err) {
         return res.status(401).json({ message: "Not authorized" });
       } else {

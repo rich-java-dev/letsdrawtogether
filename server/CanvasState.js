@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const ObjectId = Schema.ObjectId;
 
+const dotenv = require("dotenv");
+dotenv.config();
+const MONGO_ENDPOINT = process.env.MONGO_ENDPOINT;
+
 const Types = require("./utils/Types");
 
 const models = require("./models");
@@ -10,7 +14,7 @@ const Point = mongoose.model("Point", PointSchema);
 
 let load = false;
 const init = async () => {
-  await mongoose.connect("mongodb://mongo/letsdrawtogether");
+  await mongoose.connect(MONGO_ENDPOINT);
   load = true;
 };
 

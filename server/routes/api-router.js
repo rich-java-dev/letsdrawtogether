@@ -1,17 +1,19 @@
 const express = require("express");
 const router = express.Router();
 
+// enable .env file
+const dotenv = require("dotenv");
+dotenv.config();
+
 const canvasState = require("../CanvasState");
 const topicRegistry = require("../TopicRegistry");
-
-const app = require("../App");
 
 const auth = require("../Auth");
 const userLogin = auth.userLogin;
 const userAuth = auth.userAuth;
 
 const jwt = require("jsonwebtoken");
-const jwtSecret = "TESTTESTTESTTEST";
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const CLEAR_CANVAS_CMD = JSON.stringify({ action: "CLEAR" });
 
@@ -55,11 +57,17 @@ router.post("/unsubscribe", (req, res) => {
   console.log("POST: unsubscribe: " + roomId);
 });
 
+/**
+ * LOGIN END-POINT
+ */
 router.post("/login", userLogin);
 
+/**
+ * END-POINT protected behind userAuth middle-ware
+ */
 router.get("/profile", userAuth, (req, res) => {
   const token = req.cookies.jwt;
-  jwt.verify(token, jwtSecret, (err, decodedToken) => {
+  jwt.verify(token, JWT_SECRET, (err, decodedToken) => {
     if (err) {
       res.send("ERROR");
     } else {
