@@ -1,6 +1,7 @@
 // Auth.js
 
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 // enable .env file
 const dotenv = require("dotenv");
@@ -8,6 +9,7 @@ dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const MONGO_ENDPOINT = process.env.MONGO_ENDPOINT;
+const SALT = process.env.SALT;
 
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
@@ -20,7 +22,10 @@ const User = mongoose.model("User", UserSchema);
 let load = false;
 const init = async () => {
   await mongoose.connect(MONGO_ENDPOINT);
-  let userObj = { userName: "test", pw: "test" };
+
+  const hashPw = await bcrypt.hash("test", SALT + "");
+  console.log(hashPw);
+  let userObj = { userName: "test", pw: hashPw };
   const user = await User.findOne(userObj);
   if (!user) User.create(userObj);
   load = true;
@@ -51,12 +56,12 @@ const userRegister = async (req, res, next) => {
 
 const userLogin = async (req, res, next) => {
   const userName = req.body.userName;
-  const pw = req.body.pw;
-
+  const rawPw = req.body.pw;
+  const hashPw = await bcrypt.hash(rawPw, SALT + "");
   if (!load) await init();
 
   try {
-    let userObj = { userName: userName, pw: pw };
+    let userObj = { userName: userName, pw: hashPw };
     const user = await User.findOne(userObj);
     if (user) {
       const maxAge = 3 * 60 * 60; // 3 hrs in seconds
