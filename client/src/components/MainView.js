@@ -35,11 +35,15 @@ const wsEndPoint = process.env.WEBSOCKET_ENDPOINT || "websockettest";
 let roomId = "";
 let CLEAR_CANVAS_CMD = JSON.stringify({ action: "CLEAR", topic: roomId });
 
+
+// Tracking state outside of React to avoid component refresh/breaking websocket connection.
 let width = window.innerWidth - 15;
 let height = window.innerHeight - 200;
 
 let color = "black";
 let hue = 0;
+let cursorSize = 2;
+let rainbowMode = false;
 
 let mouseDown = false;
 
@@ -214,9 +218,6 @@ export const Canvas = ({ match, location }) => {
   const classes = useStyles();
   const canvasRef = useRef();
 
-  const [cursorSize, setCursorSize] = useState(2);
-  const [rainbowMode, setRainbowMode] = useState(false);
-
   if (match?.params?.roomId !== undefined) roomId = match.params.roomId;
   CLEAR_CANVAS_CMD = JSON.stringify({ action: "CLEAR", topic: roomId });
 
@@ -232,13 +233,13 @@ export const Canvas = ({ match, location }) => {
   const changeCursorSize = (evt) => {
     const val = evt.target.value;
     try {
-      setCursorSize(parseInt(val));
+      cursorSize = parseInt(val);
     } catch (err) {}
   };
 
   //
   const changeRainbowMode = () => {
-    setRainbowMode(!rainbowMode);
+    rainbowMode = !rainbowMode;
   };
 
   //
@@ -304,7 +305,7 @@ export const Canvas = ({ match, location }) => {
         <Box>
           <TextField
             className={classes.cursorSize}
-            value={cursorSize}
+            
             label="cursor size"
             variant="outlined"
             onChange={changeCursorSize}
